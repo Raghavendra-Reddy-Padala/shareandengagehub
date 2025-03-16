@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,12 +7,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, UserPlus, TrendingUp, Image as ImageIcon, Hash } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface TrendingTopic {
+  id: string;
+  tag: string;
+  count: number;
+  posts: { id: string; imageUrl: string }[];
+}
+
+interface User {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string;
+  followers?: number;
+  isTag?: boolean;
+}
+
 const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("trending");
   
-  // Sample trending topics - in a real app, these would come from your API
-  const trendingTopics = [
+  const trendingTopics: TrendingTopic[] = [
     {
       id: "1",
       tag: "technology",
@@ -60,8 +75,7 @@ const Explore = () => {
     }
   ];
   
-  // Sample suggested users - in a real app, these would come from your API
-  const suggestedUsers = [
+  const suggestedUsers: User[] = [
     {
       id: "1",
       username: "tech_enthusiast",
@@ -96,8 +110,7 @@ const Explore = () => {
     }
   ];
   
-  // Simulated search results when search query is not empty
-  const searchResults = searchQuery
+  const searchResults: User[] = searchQuery
     ? [
         ...suggestedUsers.filter(user => 
           user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -163,7 +176,7 @@ const Explore = () => {
                         </div>
                       ) : (
                         <Avatar>
-                          <AvatarImage src={result.avatarUrl} alt={result.displayName} />
+                          <AvatarImage src={result.avatarUrl || ""} alt={result.displayName} />
                           <AvatarFallback>{result.displayName.slice(0, 2)}</AvatarFallback>
                         </Avatar>
                       )}
@@ -184,80 +197,78 @@ const Explore = () => {
             </CardContent>
           </Card>
         ) : (
-          <>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="trending">Trending</TabsTrigger>
-                <TabsTrigger value="people">People to Follow</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="trending" className="mt-6">
-                <div className="grid grid-cols-2 gap-6">
-                  {trendingTopics.map((topic, index) => (
-                    <motion.div
-                      key={topic.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                    >
-                      <Card className="overflow-hidden">
-                        <div className="h-40 overflow-hidden">
-                          <img 
-                            src={topic.posts[0].imageUrl} 
-                            alt={`#${topic.tag}`} 
-                            className="w-full h-full object-cover"
-                          />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="trending">Trending</TabsTrigger>
+              <TabsTrigger value="people">People to Follow</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="trending" className="mt-6">
+              <div className="grid grid-cols-2 gap-6">
+                {trendingTopics.map((topic, index) => (
+                  <motion.div
+                    key={topic.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.4 }}
+                  >
+                    <Card className="overflow-hidden">
+                      <div className="h-40 overflow-hidden">
+                        <img 
+                          src={topic.posts[0].imageUrl} 
+                          alt={`#${topic.tag}`} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium">#{topic.tag}</h3>
+                            <p className="text-sm text-muted-foreground">{topic.count.toLocaleString()} posts</p>
+                          </div>
+                          <TrendingUp className="h-4 w-4 text-primary" />
                         </div>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">#{topic.tag}</h3>
-                              <p className="text-sm text-muted-foreground">{topic.count.toLocaleString()} posts</p>
-                            </div>
-                            <TrendingUp className="h-4 w-4 text-primary" />
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="people" className="mt-6">
+              <div className="grid gap-4">
+                {suggestedUsers.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.4 }}
+                  >
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={user.avatarUrl || ""} alt={user.displayName} />
+                            <AvatarFallback>{user.displayName.slice(0, 2)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <h3 className="font-medium">{user.displayName}</h3>
+                            <p className="text-sm text-muted-foreground">@{user.username}</p>
+                            <p className="text-sm mt-1">{user.bio}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{formatFollowerCount(user.followers || 0)} followers</p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="people" className="mt-6">
-                <div className="grid gap-4">
-                  {suggestedUsers.map((user, index) => (
-                    <motion.div
-                      key={user.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                    >
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-12 w-12">
-                              <AvatarImage src={user.avatarUrl} alt={user.displayName} />
-                              <AvatarFallback>{user.displayName.slice(0, 2)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <h3 className="font-medium">{user.displayName}</h3>
-                              <p className="text-sm text-muted-foreground">@{user.username}</p>
-                              <p className="text-sm mt-1">{user.bio}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{formatFollowerCount(user.followers)} followers</p>
-                            </div>
-                            <Button>
-                              <UserPlus className="h-4 w-4 mr-2" />
-                              Follow
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </>
+                          <Button>
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Follow
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>

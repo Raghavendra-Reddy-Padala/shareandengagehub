@@ -1,11 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditIcon, Settings, MessageCircle, UserPlus, UserCheck } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/services/api";
 
 // Sample user data - in a real app, this would come from your API
 const SAMPLE_USER = {
@@ -50,16 +52,21 @@ const Profile = () => {
   
   useEffect(() => {
     const loadProfile = async () => {
-      // In a real app, you would fetch user data and posts from your API
-      // const userResponse = await api.users.getProfile(username);
-      // const postsResponse = await api.posts.getUserPosts(userResponse.data.id);
-      
-      // For now, use sample data with a slight delay to simulate loading
-      setTimeout(() => {
-        setUser(SAMPLE_USER);
-        setPosts(SAMPLE_POSTS);
+      try {
+        // In a real app, you would fetch user data and posts from your API
+        // const userResponse = await api.users.getProfile(username);
+        // const postsResponse = await api.posts.getUserPosts(userResponse.data.id);
+        
+        // For now, use sample data with a slight delay to simulate loading
+        setTimeout(() => {
+          setUser(SAMPLE_USER);
+          setPosts(SAMPLE_POSTS);
+          setLoading(false);
+        }, 1000);
+      } catch (error) {
+        toast.error("Failed to load profile data");
         setLoading(false);
-      }, 1000);
+      }
     };
     
     loadProfile();
@@ -67,6 +74,7 @@ const Profile = () => {
   
   const handleToggleFollow = () => {
     setFollowing(!following);
+    toast.success(following ? "Unfollowed user" : "Now following user");
   };
   
   if (loading) {
@@ -176,7 +184,9 @@ const Profile = () => {
             </CardContent>
             <CardFooter>
               {user.username === "johndoe" ? (
-                <Button variant="outline" className="w-full" onClick={() => {}}>
+                <Button variant="outline" className="w-full" onClick={() => {
+                  toast.info("Edit profile feature coming soon!");
+                }}>
                   <EditIcon className="h-4 w-4 mr-2" />
                   Edit Profile
                 </Button>
@@ -208,72 +218,73 @@ const Profile = () => {
         <div className="md:w-2/3">
           <Card>
             <CardHeader className="pb-3">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Tabs defaultValue="posts" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="posts">Posts</TabsTrigger>
                   <TabsTrigger value="media">Media</TabsTrigger>
                   <TabsTrigger value="likes">Likes</TabsTrigger>
                 </TabsList>
-              </Tabs>
-            </CardHeader>
-            <CardContent>
-              <TabsContent value="posts" className="space-y-4 mt-0">
-                {posts.length > 0 ? (
-                  posts.map((post) => (
-                    <Card key={post.id} className="overflow-hidden card-hover">
-                      <CardContent className="p-4">
-                        <p className="text-sm mb-3">{post.content}</p>
-                        {post.imageUrl && (
-                          <div className="rounded-md overflow-hidden mb-3">
-                            <img
-                              src={post.imageUrl}
-                              alt="Post attachment"
-                              className="w-full h-auto object-cover max-h-80"
-                            />
+              
+                <TabsContent value="posts" className="space-y-4 mt-4">
+                  {posts.length > 0 ? (
+                    posts.map((post) => (
+                      <Card key={post.id} className="overflow-hidden card-hover">
+                        <CardContent className="p-4">
+                          <p className="text-sm mb-3">{post.content}</p>
+                          {post.imageUrl && (
+                            <div className="rounded-md overflow-hidden mb-3">
+                              <img
+                                src={post.imageUrl}
+                                alt="Post attachment"
+                                className="w-full h-auto object-cover max-h-80"
+                              />
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{new Date(post.timestamp).toLocaleDateString()}</span>
+                            <div className="flex space-x-4">
+                              <span>{post.likes} likes</span>
+                              <span>{post.comments} comments</span>
+                            </div>
                           </div>
-                        )}
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{new Date(post.timestamp).toLocaleDateString()}</span>
-                          <div className="flex space-x-4">
-                            <span>{post.likes} likes</span>
-                            <span>{post.comments} comments</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No posts yet</p>
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="media" className="mt-0">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {posts
-                    .filter((post) => post.imageUrl)
-                    .map((post) => (
-                      <div key={post.id} className="aspect-square rounded-md overflow-hidden card-hover">
-                        <img
-                          src={post.imageUrl}
-                          alt="Media"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                  {posts.filter((post) => post.imageUrl).length === 0 && (
-                    <div className="col-span-3 text-center py-8">
-                      <p className="text-muted-foreground">No media yet</p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No posts yet</p>
                     </div>
                   )}
-                </div>
-              </TabsContent>
-              <TabsContent value="likes" className="mt-0">
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No liked posts yet</p>
-                </div>
-              </TabsContent>
-            </CardContent>
+                </TabsContent>
+                
+                <TabsContent value="media" className="mt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {posts
+                      .filter((post) => post.imageUrl)
+                      .map((post) => (
+                        <div key={post.id} className="aspect-square rounded-md overflow-hidden card-hover">
+                          <img
+                            src={post.imageUrl}
+                            alt="Media"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    {posts.filter((post) => post.imageUrl).length === 0 && (
+                      <div className="col-span-3 text-center py-8">
+                        <p className="text-muted-foreground">No media yet</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="likes" className="mt-4">
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No liked posts yet</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardHeader>
           </Card>
         </div>
       </div>
