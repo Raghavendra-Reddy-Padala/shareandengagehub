@@ -9,13 +9,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useScreenSize } from "@/hooks/use-mobile";
 
 const MainLayout = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const screenSize = useScreenSize();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null); // This would normally come from an auth context
   
@@ -29,6 +30,13 @@ const MainLayout = () => {
       avatarUrl: "https://i.pravatar.cc/150?u=john"
     });
   }, []);
+  
+  // Close menu when route changes on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setIsMenuOpen(false);
+    }
+  }, [location.pathname, isMobile]);
   
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -81,19 +89,49 @@ const MainLayout = () => {
       {isMobile && (
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b flex justify-between items-center px-4 py-3">
           <div className="flex items-center">
-            <Button variant="ghost" size="icon" onClick={toggleMenu}>
+            <Button variant="ghost" size="icon" onClick={toggleMenu} className="relative">
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {location.pathname === "/notifications" && (
+                <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+              )}
             </Button>
             <h1 className="ml-2 text-xl font-display font-bold text-primary">SocialSphere</h1>
           </div>
           
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback>
-              {user?.displayName?.slice(0, 2) || "JD"}
-            </AvatarFallback>
-          </Avatar>
+          <NavLink to={`/profile/${user?.username}`}>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.avatarUrl} />
+              <AvatarFallback>
+                {user?.displayName?.slice(0, 2) || "JD"}
+              </AvatarFallback>
+            </Avatar>
+          </NavLink>
         </header>
+      )}
+      
+      {/* Mobile Bottom Navigation Bar - Compact version */}
+      {isMobile && (
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t flex justify-around items-center py-2">
+          {navItems.slice(0, 5).map((item) => (
+            <NavLink 
+              key={item.to} 
+              to={item.to}
+              className={({ isActive }) => `
+                flex flex-col items-center justify-center p-2 rounded-md transition-colors relative
+                ${isActive 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+                }
+              `}
+            >
+              {item.icon}
+              <span className="text-[10px] mt-1">{item.label}</span>
+              {item.to === "/notifications" && (
+                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+              )}
+            </NavLink>
+          ))}
+        </nav>
       )}
       
       {/* Mobile Navigation - Slide in menu */}
@@ -105,7 +143,7 @@ const MainLayout = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="fixed top-0 left-0 bottom-0 z-40 w-64 bg-background border-r pt-16 flex flex-col"
+              className="fixed top-0 left-0 bottom-0 z-45 w-64 bg-background border-r pt-16 pb-16 flex flex-col"
             >
               <div className="flex-1 overflow-y-auto p-3">
                 <nav className="space-y-1">
@@ -201,7 +239,7 @@ const MainLayout = () => {
       )}
       
       {/* Main Content */}
-      <main className={`flex-1 ${!isMobile ? "ml-64" : "mt-14"}`}>
+      <main className={`flex-1 ${!isMobile ? "ml-64" : "mt-14 mb-16"} pb-4 md:pb-0`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
