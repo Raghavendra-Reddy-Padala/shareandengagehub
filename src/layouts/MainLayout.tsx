@@ -11,9 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// We'll add framer-motion for animations
-<lov-add-dependency>framer-motion@10.12.4</lov-add-dependency>
-
 const MainLayout = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
