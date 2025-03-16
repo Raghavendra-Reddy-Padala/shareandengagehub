@@ -1,7 +1,11 @@
-import { useLocation } from "react-router-dom";
+
 import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 const NotFound = () => {
+  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
@@ -12,13 +16,47 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="text-center max-w-md animate-fade-in">
+        <motion.div
+          className="mb-6 text-primary font-bold text-9xl"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          404
+        </motion.div>
+
+        <motion.h1
+          className="text-2xl font-bold mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          Page Not Found
+        </motion.h1>
+
+        <motion.p
+          className="text-muted-foreground mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          The page you're looking for doesn't exist or has been moved.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <Button onClick={() => navigate("/")} className="mr-2">
+            Go Home
+          </Button>
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            Go Back
+          </Button>
+        </motion.div>
       </div>
     </div>
   );
